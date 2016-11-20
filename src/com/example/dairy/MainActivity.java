@@ -34,13 +34,13 @@ public class MainActivity extends Activity implements OnClickListener{
 	
 	private Button btn_year;
 	
-	private String []month={"一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"};
+	private String []month={"January","Feburary","March","April","May","June","July","August","September","October","November","December"};
 	
 	private String []year={"2015年","2016年","2017年","2018年"};
 	
 	private List<ListViewMain> pointList=new ArrayList<ListViewMain>();
 	
-	private EditText edit;
+	private Intent intent=new Intent("action_1");
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,18 +59,19 @@ public class MainActivity extends Activity implements OnClickListener{
 		ListView listView_point=(ListView) findViewById(R.id.listView_main);
 		listView_point.setAdapter(pointAdapter);
 		
-		listView_point.setOnItemClickListener(new OnItemClickListener() {		//为item设置点击事件
+		listView_point.setOnItemClickListener(new OnItemClickListener() {		//为pointList的item设置点击事件
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
+			public void onItemClick(AdapterView<?> parent, View view, int i,
 					long id) {
 				// TODO Auto-generated method stub
-				String data=String.valueOf(position);
-				Intent intent=new Intent("action_1");
-				intent.putExtra("extra_data", data);
+				String post=String.valueOf(i);
+				intent.putExtra("extra_data",post);
+				intent.putExtra("extra",month[0]);
 				startActivity(intent);
 			}
 			
 		});
+		
 	}
 
 		
@@ -78,6 +79,7 @@ public class MainActivity extends Activity implements OnClickListener{
 		for(int i=0; i<30; i++){
 		ListViewMain point=new ListViewMain(R.drawable.button);
 		pointList.add(point);
+		
 		}
 	}
 
@@ -90,9 +92,25 @@ public class MainActivity extends Activity implements OnClickListener{
 		case R.id.button_month:		//月份按钮点击事件
 			AlertDialog.Builder dialog_month=new AlertDialog.Builder(MainActivity.this);
 			View view_month=LayoutInflater.from(MainActivity.this).inflate(R.layout.month_list,null);
+			
+			//为月份配置listview
 			ArrayAdapter<String> monthAdapter=new ArrayAdapter<String> (MainActivity.this, android.R.layout.simple_list_item_1,month);
 			ListView listView_month=(ListView) view_month.findViewById(R.id.month_ListView);
 			listView_month.setAdapter(monthAdapter);
+			listView_month.setOnItemClickListener(new OnItemClickListener(){		
+
+				@Override									//通过点击item为每个月设置文件名字
+				public void onItemClick(AdapterView<?> arg0, View view,
+						int i, long id) {
+					// TODO Auto-generated method stub
+					intent.putExtra("extra_month", month[i]);
+				}
+				
+			});
+			
+			
+			
+			
 			dialog_month.setView(view_month);
 			dialog_month.show();
 			break;

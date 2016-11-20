@@ -3,10 +3,15 @@ package com.example.dairy;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
@@ -22,94 +27,147 @@ import android.widget.Toast;
 public class SecondActivity extends Activity implements OnClickListener{
 
 	private EditText edit;
+
+	private String fileName;
 	
-	private Button btn_save;
+	private int position;
 	
-	private String inputText;
+	private List<Day> dayList;
 	
-	private String data;
+	private String content_parttime;
+	
+	private Button btn;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_second);
-		Intent intent=getIntent();
-		data=intent.getStringExtra("extra_data");
 		edit=(EditText) findViewById(R.id.edit);
-		btn_save=(Button) findViewById(R.id.save);
-		btn_save.setOnClickListener(this);
-		inputText=load();
-		edit.setText(inputText);
-		edit.setSelection(inputText.length());
+		
+		Intent intent=getIntent();
+		if(intent.getStringExtra("extra_month")!=null){
+			fileName=intent.getStringExtra("extra_month");
+		}else{
+			fileName=intent.getStringExtra("extra");
+		}
+		
+		position=Integer.parseInt(intent.getStringExtra("extra_data"));
+		
+		dayList=read();
+		
+		if(dayList.size()!=0){
+			if(!TextUtils.isEmpty(dayList.get(position).getContent())){
+				content_parttime=dayList.get(position).getContent();
+				edit.setText(content_parttime);
+				edit.setSelection(content_parttime.length());
+			}
+		}
+
+		btn=(Button) findViewById(R.id.save);
+		btn.setOnClickListener(this);
 		
 	}
 	
 	@Override
-	public void onClick(View v) {
+	public void onClick(View arg0) {			
+		// TODO Auto-generated method stub		
+		String text=edit.getText().toString();
+		Toast.makeText(SecondActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
+		write(dayList,position,text);
+	}
+
+
+	private void write(List<Day> contentList_test, int position, String text_test) {
 		// TODO Auto-generated method stub
-		String inputText=edit.getText().toString();
-		save(inputText);
-		Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
 		
+		//1
+		contentList_test=get();
+		//2
+		if(contentList_test.size()!=0)
+		{
+			if(contentList_test.get(position).getContent()!=text_test){
+				contentList_test.get(position).content=text_test;
+				save(contentList_test);
+		}
+		//3
+		}else{
+			init(contentList_test);
+			save(contentList_test);
+			contentList_test=read();
+			if(contentList_test.get(position).getContent()!=text_test){
+			contentList_test.get(position).content=text_test;
+			save(contentList_test);}
+		}
 	}
 
-	
-//	@Override
-//	protected void onDestroy(){		//设置销毁函数机制
-	//	super.onDestroy();
-	//	String inputText=edit.getText().toString();
-	//	save(inputText);
-//	}
-	
-
-	private void save(String inputText) {	//文件保存函数
+	private void init(List<Day> contentList_test) {
 		// TODO Auto-generated method stub
-		FileOutputStream out=null;
-		BufferedWriter writer=null;
-		try{
-			out=openFileOutput(data,Context.MODE_PRIVATE);
-			writer=new BufferedWriter(new OutputStreamWriter(out));
-			writer.write(inputText);
-		} catch(IOException e)	{
-			e.printStackTrace();
-		} finally{
-			try{
-				if (writer!=null){
-					writer.close();
-				}
-			}catch (IOException e){
-				e.printStackTrace();
-			}
+		for(int i=0; i<30; i++){
+			Day day=new Day();
+			day.content=new String ("  ");
+			contentList_test.add(day);
 		}
 	}
 
-	public String load(){
-		FileInputStream in=null;
-		BufferedReader reader=null;
-		StringBuilder content=new StringBuilder();
+	private void save(List<Day> contentList_test) {
+		// TODO Auto-generated method stub
 		try{
-			in=openFileInput(data);
-			reader=new BufferedReader(new InputStreamReader(in));
-			String line="";
-			while((line=reader.readLine())!=null){
-				content.append(line);
-			}
-		}catch (IOException e){
+			FileOutputStream out=openFileOutput(fileName,Context.MODE_PRIVATE);
+			ObjectOutputStream outObject=new ObjectOutputStream(out);
+			outObject.writeObject(contentList_test);
+			outObject.close();
+			out.close();
+		}catch(FileNotFoundException e){
 			e.printStackTrace();
-		}finally{
-			if(reader!=null){
-				try{
-					reader.close();
-				}catch (IOException e){
-					e.printStackTrace();
-				}
-			}
+		}catch(IOException e){
+			e.printStackTrace();
 		}
-		return content.toString();
 	}
+
+	private List<Day> read() {
+		// TODO Auto-generated method stub
+		return get();
+	}
+
+
+
+
+	private List<Day> get() {
+		// TODO Auto-generated method stub
+		List<Day> list = new ArrayList<Day>();
+		
+		try{
+			FileInputStream in=openFileInput(fileName);
+			ObjectInputStream inObject=new ObjectInputStream(in);
+			list=(List<Day>) inObject.readObject();
+
+		
+			inObject.close();
+			in.close();
+		}catch(FileNotFoundException e){
+			e.printStackTrace();
+		}catch(IOException e){
+			e.printStackTrace();
+		}catch(ClassNotFoundException e){
+			e.printStackTrace();
+		}
+		return list;
+	}
+
+
+
+
+
+
+
 
 
 	
+
+
+
+
 }
 
 
